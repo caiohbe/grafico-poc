@@ -11,7 +11,7 @@ export default function Chart() {
     async function TEMP() {
       const data = await getData()
 
-      const yAccessor = (d) => d["Concentração de CO (%)"]
+      const yAccessor = (d) => parseFloat(d["Concentração de CO (%)"])
 
       const parseDate = d3.timeParse("%d/%m/%Y %H:%M")
       function xAccessor(d) {
@@ -19,6 +19,7 @@ export default function Chart() {
       }
 
       const wrapper = wrapperRef.current
+
       d3.select(wrapper)
         .append("svg")
         .attr("width", dimensions.width)
@@ -29,7 +30,10 @@ export default function Chart() {
         .append("g")
         .style(
           "transform",
-          `translate(${dimensions.margins.left}px, ${dimensions.margins.top}px)`
+          `translate(
+            ${dimensions.margins.left}px, 
+            ${dimensions.margins.top}px)
+          `
         )
 
       const yScale = d3
@@ -37,7 +41,22 @@ export default function Chart() {
         .domain(d3.extent(data, yAccessor))
         .range([dimensions.boundedHeight, 0])
 
-      console.log(xAccessor(data[0]))
+      const xScale = d3
+        .scaleTime()
+        .domain(d3.extent(data, xAccessor))
+        .range([0, dimensions.boundedWidth])
+
+      const lineGenerator = d3
+        .line()
+        .x((d) => xScale(xAccessor(d)))
+        .y((d) => yScale(yAccessor(d)))
+
+      const line = bounds
+        .append("path")
+        .attr("d", lineGenerator(data))
+        .attr("fill", "none")
+        .attr("stroke", "tomato")
+      console.log(yAccessor(data[0]))
     }
 
     TEMP()
